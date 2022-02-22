@@ -1,6 +1,6 @@
 package GeneracionClaveRSA;
 
-import GestionFicheros.GestionFicheros;
+import GestionFicheros.*;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -14,15 +14,19 @@ public class CriptografiaRSA {
     public static SecureRandom srand;
 
 
-    public KeyPair generarClave(){
+    /**
+     *
+     * @return
+     */
+    public KeyPair generarParClaves(String nomFichClavePublica, String nomFichClavePrivada){
         KeyPair parClaves = null;
         try{
             srand = SecureRandom.getInstanceStrong();
             KeyPairGenerator genParClaves = KeyPairGenerator.getInstance(ALGORITMO_CLAVE_PUBLICA);
             genParClaves.initialize(TAM_CLAVE, srand);
             parClaves = genParClaves.generateKeyPair();
-            GestionFicheros.escribirClavePrivadaRSA(parClaves.getPrivate());
-            GestionFicheros.escribirClavePublicaRSA(parClaves.getPublic());
+            GestionFicheros.escribirClavePrivadaRSA(parClaves.getPrivate(), nomFichClavePrivada);
+            GestionFicheros.escribirClavePublicaRSA(parClaves.getPublic(), nomFichClavePublica);
         } catch (NoSuchAlgorithmException e) {
             System.out.println("No se encontró el algoritmo de generacion de números aleatorios");
         }
