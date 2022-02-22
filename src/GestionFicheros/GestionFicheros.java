@@ -18,6 +18,10 @@ public class GestionFicheros {
     private static final String ALGORITMO_CLAVE_PUBLICA = "RSA";
     private static final String NOM_FICH_CLAVE_PUBLICA = ".der";
     private static final String NOM_FICH_CLAVE_PRIVADA = ".pkcs8";
+    //Instituto 1º ->
+    // Instituto 2º -> C:\Users\caguilar.INFO2\IdeaProjects\ClavePublicaPrivada\src\GeneracionClaveRSA\Claves\
+    //Casa -> C:\Users\caguilar.INFO2\IdeaProjects\ClavePublicaPrivada\src\GeneracionClaveRSA\Claves\
+    public static final String RUTA_FICH_CLAVE = "C:\\Users\\caguilar.INFO2\\IdeaProjects\\ClavePublicaPrivada\\src\\GeneracionClaveRSA\\Claves\\";
 
 
     private static String generarRuta(String nomFichClave, int accion) {
@@ -50,74 +54,36 @@ public class GestionFicheros {
 
     public static String escribirFichero(String nomFich, String modo, Cipher cifrado) {
         try {
-            FileInputStream fis = new FileInputStream(nomFich);
-
+            BufferedInputStream is = new BufferedInputStream(new FileInputStream(nomFich));
             try {
-                FileOutputStream fos = new FileOutputStream(nomFich + modo);
-
+                BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(nomFich + modo));
                 try {
-                    BufferedInputStream is = new BufferedInputStream(fis);
+                    byte[] buff = new byte[cifrado.getBlockSize()];
 
-                    try {
-                        BufferedOutputStream os = new BufferedOutputStream(fos);
-
-                        try {
-                            byte[] buff = new byte[cifrado.getBlockSize()];
-
-                            while (true) {
-                                if (is.read(buff) == -1) {
-                                    os.write(cifrado.doFinal());
-                                    break;
-                                }
-
-                                os.write(cifrado.update(buff));
-                            }
-                        } catch (Throwable var13) {
-                            try {
-                                os.close();
-                            } catch (Throwable var12) {
-                                var13.addSuppressed(var12);
-                            }
-
-                            throw var13;
+                    while (true) {
+                        if (is.read(buff) == -1) {
+                            os.write(cifrado.doFinal());
+                            break;
                         }
-
-                        os.close();
-                    } catch (Throwable var14) {
-                        try {
-                            is.close();
-                        } catch (Throwable var11) {
-                            var14.addSuppressed(var11);
-                        }
-
-                        throw var14;
+                        os.write(cifrado.update(buff));
                     }
-
+                }finally {
+                    os.close();
                     is.close();
-                } catch (Throwable var15) {
-                    try {
-                        fos.close();
-                    } catch (Throwable var10) {
-                        var15.addSuppressed(var10);
-                    }
-
-                    throw var15;
                 }
-
-                fos.close();
-            } catch (Throwable var16) {
-                try {
-                    fis.close();
-                } catch (Throwable var9) {
-                    var16.addSuppressed(var9);
-                }
+                nomFich = new StringBuilder().append(nomFich).append(modo).toString();
+            } catch (FileNotFoundException e) {
+                System.out.println("Archivo no encontrado");
+            } catch (IllegalBlockSizeException e) {
+                System.out.println("Tamaño de los bloques no concuerda con las especificaciones");
+            } catch (BadPaddingException t) {
+                System.out.println("Mal padding");
+            }catch( IOException e){
+                System.out.println("ERROR: de E/S encriptando fichero");
             }
-
-            fis.close();
-        } catch (IOException var19) {
-            System.out.println("ERROR: de E/S encriptando fichero");
+        } catch (FileNotFoundException | NullPointerException e) {
+            System.out.println("Fichero no encontrado");
         }
-        nomFich += modo;
         return nomFich;
     }
 
@@ -128,7 +94,7 @@ public class GestionFicheros {
      */
     public static boolean escribirClavePublicaRSA(PublicKey clavePublica, String nomFichClavePublica) {
         X509EncodedKeySpec x509EncodedKeySpec = null;
-        nomFichClavePublica = generarRuta("C:\\Users\\caguilar.INFO2\\IdeaProjects\\ClavePublicaPrivada\\src\\GeneracionClavesRSA\\Claves\\" + nomFichClavePublica, 1);
+        nomFichClavePublica = generarRuta(RUTA_FICH_CLAVE + nomFichClavePublica, 1);
         boolean salir = false;
         try (FileOutputStream fosClavePublica = new FileOutputStream(nomFichClavePublica)) {
             x509EncodedKeySpec = new X509EncodedKeySpec(
@@ -156,10 +122,8 @@ public class GestionFicheros {
             clavePubCodif = fisClavePub.readAllBytes();
         } catch (FileNotFoundException e) {
             System.out.printf("ERROR: no existe fichero de clave pública %s\n.", nomFichClave);
-
         } catch (IOException e) {
             System.out.printf("ERROR: de E/S leyendo clave de fichero %s\n.", nomFichClave);
-
         }
         return clavePubCodif;
     }
@@ -171,13 +135,14 @@ public class GestionFicheros {
      */
     public static boolean escribirClavePrivadaRSA(PrivateKey clavePrivada, String nomFichClave) {
         boolean salir = false;
-        nomFichClave = generarRuta("C:\\Users\\caguilar.INFO2\\IdeaProjects\\ClavePublicaPrivada\\src\\GeneracionClaveRSA\\Claves\\" + nomFichClave, 2);
+        nomFichClave = generarRuta(RUTA_FICH_CLAVE + nomFichClave, 2);
         PKCS8EncodedKeySpec pkcs8EncodedKeySpec = null;
         try (FileOutputStream fosClavePrivada = new FileOutputStream(nomFichClave)) {
             pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(
                     clavePrivada.getEncoded(), ALGORITMO_CLAVE_PUBLICA);
             fosClavePrivada.write(pkcs8EncodedKeySpec.getEncoded());
-            System.out.printf("Clave privada guardada en formato %s en fichero %s:\n%s\n",  // clavePrivada.getEncoded() tiene lo mismo
+            System.out.printf("Clave privada guardada en formato %s en fichero %s:\n%s\n",
+                    // clavePrivada.getEncoded() tiene lo mismo
                     pkcs8EncodedKeySpec.getFormat(), nomFichClave,
                     Base64.getEncoder().encodeToString(pkcs8EncodedKeySpec.getEncoded()).replaceAll("(.{76})", "$1\n"));
             salir = true;

@@ -27,8 +27,8 @@ public class CifradoRSA {
      * @param rutaFichero
      */
     public void encriptarFichero(String nomFichClave, String rutaFichero) {
-
-        byte[] clavePubCodif = GestionFicheros.leerClavePublicaRSA("C:\\Users\\caguilar.INFO2\\IdeaProjects\\ClavePublicaPrivada\\src\\GeneracionClaveRSA\\Claves\\"+nomFichClave+FICH_CLAVE_PUB);
+        //C:\Users\caguilar.INFO2\IdeaProjects\ClavePublicaPrivada\src\GeneracionClaveRSA\Claves
+        byte[] clavePubCodif = GestionFicheros.leerClavePublicaRSA("C:\\Users\\GL512\\IdeaProjects\\ClavePublicaPrivada\\src\\GeneracionClaveRSA\\Claves\\"+nomFichClave+FICH_CLAVE_PUB);
 
         KeyFactory factory;
         try{
@@ -40,10 +40,13 @@ public class CifradoRSA {
 
             Cipher cifrado = getPublicCipher(clavePublica);
             byte[] mensajeCifrado = cifrado.doFinal(mensajeClaro);
-            System.out.printf("Fichero cifrado codificado en base 64 como texto:\n%s\n",
-                    Base64.getEncoder().encodeToString(mensajeCifrado).replaceAll("(.{76})", "$1\n"));
 
-            GestionFicheros.escribirFichero(rutaFichero, ".encrypt", cifrado);
+            String rutaFichEncrypt = GestionFicheros.escribirFichero(rutaFichero, ".encrypt", cifrado);
+
+            System.out.printf("Fichero cifrado codificado en base 64 como texto:\n%s\nEsta información fué guardada en el fichero %s",
+                    Base64.getEncoder().encodeToString(mensajeCifrado).replaceAll("(.{76})", "$1\n"), rutaFichEncrypt);
+
+
 
         } catch (NoSuchAlgorithmException e) {
             System.out.println("No existe el algoritmo");
@@ -74,9 +77,9 @@ public class CifradoRSA {
             Cipher cifrado = getPrivateCipher(clavePrivada);
             byte[] fichDescifrado = cifrado.doFinal();
 
-            GestionFicheros.escribirFichero(rutaFichero, ".desencrypt", cifrado);
+            String rutaFichDecrypt = GestionFicheros.escribirFichero(rutaFichero, ".desencrypt", cifrado);
 
-            System.out.printf("Texto descifrado:\n%s\n", new String(fichDescifrado, "UTF-8"));
+            System.out.printf("Fichero descifrado:\n%s\nEn Fichero %s", new String(fichDescifrado, "UTF-8"), rutaFichDecrypt);
 
         } catch (NoSuchAlgorithmException e) {
             System.out.println("No existe algoritmo");
